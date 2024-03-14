@@ -32,7 +32,7 @@ function turnClick(square){
     turn(square.target.id, humanPlayer);
 
 
-    if(bestSpot() != 'number' && !checkWin(originalBoard,humanPlayer) && !checkTie()){
+    if(!checkWin(originalBoard,humanPlayer) && !checkTie()){
         turn(bestSpot(), aiPlayer);
     }
 }
@@ -84,7 +84,7 @@ function emptySquares(){
 }
 
 function bestSpot(){
-    return emptySquares()[0];
+    return minimax(originalBoard, aiPlayer).index;
 }
 
 function checkTie(){
@@ -97,4 +97,59 @@ function checkTie(){
         return true;
     }
     return false;
+}
+
+function minimax(newBoard, player){
+    let availableSpots = emptySquares(newBoard);
+
+    if(checkWin(newBoard, humanPlayer)){
+        return {score: -1};
+    }
+    else if(checkWin(newBoard, aiPlayer)){
+        return {score: 1};
+    }
+    else if(availableSpots.length == 0){
+        return {score: 0};
+    }
+
+    let moves = [];
+    for (let index = 0 ; index < availableSpots.length; index++){
+        let move = {};
+        move.index = newBoard[availableSpots[index]];
+        newBoard[availableSpots[index]] = player;
+
+        if(player == aiPlayer){
+            let result = minimax(newBoard, humanPlayer);
+            move.score = result.score;
+        }
+        else{
+            let result = minimax(newBoard, aiPlayer);
+            move.score = result.score;
+        }
+
+        newBoard[availableSpots[index]] = move.index;
+
+        moves.push(move);
+    }
+
+    let bestMove;
+    if(player === aiPlayer){
+        var bestScore = -10000;
+        for(let index = 0; index < moves.length; index++){
+            if(moves[index].score > bestScore){
+                bestScore = moves[index].score;
+                bestMove = index;
+            }
+        }
+    } else{
+        var bestScore = 10000;
+        for(let index = 0; index < moves.length; index++){
+            if(moves[index].score < bestScore){
+                bestScore = moves[index].score;
+                bestMove = index;
+            }
+        }
+    }
+
+    return moves[bestMove];
 }
