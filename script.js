@@ -16,7 +16,7 @@ const cells = document.querySelectorAll('.cell');
 startGame();
 
 function startGame() {
-    document.querySelector(".endgame").computedStyleMap.display = "none"; 
+    document.querySelector(".endgame").style.display = "none"; 
     originalBoard = Array.from(Array(9).keys());
     for(let i = 0; i <cells.length; i++){
         cells[i].innerText = '';
@@ -26,8 +26,17 @@ function startGame() {
 }
 
 function turnClick(square){
-    turn(square.target.id, humanPlayer)
+    if(typeof originalBoard[square.target.id] != 'number'){
+        return;
+    }
+    turn(square.target.id, humanPlayer);
+
+
+    if(bestSpot() != 'number' && !checkWin(originalBoard,humanPlayer) && !checkTie()){
+        turn(bestSpot(), aiPlayer);
+    }
 }
+
 
 function turn(squareId, player){
     originalBoard[squareId] = player;
@@ -35,6 +44,9 @@ function turn(squareId, player){
     let gameWon = checkWin(originalBoard, player)
     if(gameWon){
         gameOver(gameWon)
+    }
+    else {
+        checkTie();
     }
 }
 
@@ -59,4 +71,30 @@ function gameOver(gameWon){
     for(let i = 0; i < cells.length; i++){
         cells[i].removeEventListener('click', turnClick, false);
     }
+    declareWinner(gameWon.player == humanPlayer ? "You Win!" : "You Lose!");
+}
+
+function declareWinner(winner){
+    document.querySelector(".endgame").style.display = "block";
+    document.querySelector(".endgame .text").innerText = winner;
+}
+
+function emptySquares(){
+    return originalBoard.filter(square => typeof square == 'number');
+}
+
+function bestSpot(){
+    return emptySquares()[0];
+}
+
+function checkTie(){
+    if(emptySquares().length == 0){
+        for(let i = 0; i < cells.length; i++){
+            cells[i].style.backgroundColor = "green";
+            cells[i].removeEventListener('click', turnClick, false);
+        }
+        declareWinner("Tie Game");
+        return true;
+    }
+    return false;
 }
